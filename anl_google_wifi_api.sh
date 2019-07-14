@@ -10,13 +10,27 @@
 #bash_version    :4.1.5
 #==============================================================================
 
-#filename="google_diagnotic.dump"
-
-# CURL itself was not working that's why not using this
+#"CURL" was not working for me that's why not using this below command and using HTTPIE instead
 #curl http://192.168.86.1/api/v1/diagnostic-report -o "$filename"
 
-http -v --download http://192.168.86.1/api/v1/diagnostic-report --output google_diagnotic.dump
+if ! which http >/dev/null; then
+     echo "" 
+     echo "Command 'http' not found, but can be installed with"
+     echo ""
+     echo "sudo apt install httpie"
+     echo ""
+fi
 
+echo 
+echo "Generating report and download from Google Wifi Diagnostics . . . "
+echo 
+http --download http://192.168.86.1/api/v1/diagnostic-report --output google_diagnotic.dump
+
+echo 
+echo "Download completed."
+echo
+echo "Processing data . . . "
+echo 
 
 file="google_diagnotic.dump"
 save="google.report.csv"
@@ -69,7 +83,17 @@ do
             line_text=""
             for i in "${!station[@]}"
             do
-                line_text="$line_text,${station[$i]}"
+                if [[ ${station[station_id]} == "" ]];
+                then
+                    break
+                fi
+
+                if [ -z "$line_text" ]
+                then
+                     line_text="${station[$i]},"
+                else
+                    line_text="$line_text${station[$i]},"
+                fi
             done
 
             echo $line_text >> $save
@@ -94,5 +118,11 @@ do
     fi
 
 done < "$file"
+
+echo
+echo "Successfully exported Google wifi Diagnotics to CSV Formated file"
+echo 
+echo "Thank you for using. Namaste !!!"
+echo
 
 exit 0
